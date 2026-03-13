@@ -1,10 +1,12 @@
 // app/(auth)/index.tsx  ← Welcome / Landing screen
 
 import { Button, Divider, SocialButton } from "@/components/ui";
+import { ZaenaLogo } from "@/components/ZaenaLogo";
 import { AuthService } from "@/lib/services/auth.service";
 import { signInWithGoogle } from "@/lib/services/googleAuth";
 import supabase from "@/lib/supabase";
 import { Colors, Radius, Spacing, Typography } from "@/lib/theme";
+import { useTheme } from "@/lib/theme/ThemeProvider";
 import { useAuthStore } from "@/stores/authStore";
 import { router } from "expo-router";
 import React from "react";
@@ -14,6 +16,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const { width } = Dimensions.get("window");
 
 export default function WelcomeScreen() {
+  const { theme } = useTheme();
+  const c = theme.colors;
   const [googleLoading, setGoogleLoading] = React.useState(false);
   const [appleLoading, setAppleLoading] = React.useState(false);
   const [errors, setErrors] = React.useState<{ general?: string }>({});
@@ -79,12 +83,10 @@ export default function WelcomeScreen() {
       <View style={styles.container}>
         {/* Logo / Brand mark */}
         <View style={styles.heroSection}>
-          <View style={styles.logoMark}>
-            <View style={styles.logoInner} />
-          </View>
+          <ZaenaLogo size={64} color={c.signal} />
           <Text style={styles.brandName}>Zaena</Text>
           <Text style={styles.tagline}>
-            Manage your business{"\n"}scale with ease.
+            The Infrastructure{"\n"}for growing businesses.
           </Text>
         </View>
 

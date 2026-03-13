@@ -2,11 +2,11 @@
 
 import { Button, Divider, Input, SocialButton } from "@/components/ui";
 import { AuthService } from "@/lib/services/auth.service";
-import { Colors, Radius, Spacing, Typography } from "@/lib/theme";
+import { useTheme } from "@/lib/theme/ThemeProvider";
+import { useAuthStore } from "@/stores/authStore";
+import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
-
-import { useAuthStore } from "@/stores/authStore";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -20,9 +20,16 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
+  const { theme } = useTheme();
+  const c = theme.colors;
+  const t = theme.typography;
+  const sp = theme.spacing;
+  const r = theme.radius;
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
@@ -30,9 +37,6 @@ export default function LoginScreen() {
   }>({});
 
   const { signIn } = useAuthStore();
-
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [appleLoading, setAppleLoading] = useState(false);
 
   function validate() {
     const e: typeof errors = {};
@@ -47,13 +51,9 @@ export default function LoginScreen() {
     try {
       setLoading(true);
       setErrors({});
-
       const { error } = await signIn(email.trim(), password);
       if (error) throw error;
-
-      // Read the updated store state after signIn
       const { onboardingStep } = useAuthStore.getState();
-
       if (!onboardingStep || onboardingStep !== "complete") {
         router.replace("/(onboarding)/org-info" as any);
       } else {
@@ -67,30 +67,104 @@ export default function LoginScreen() {
   }
 
   async function handleGoogle() {
+    if (Platform.OS === "web") {
+      setErrors({ general: "Google sign-in is not available on web yet." });
+      return;
+    }
     try {
       setGoogleLoading(true);
       await AuthService.signInWithGoogle();
-    } catch (e) {
+    } catch {
       setErrors({ general: "Google sign-in failed. Please try again." });
     } finally {
       setGoogleLoading(false);
     }
   }
 
-  async function handleApple() {
-    try {
-      setAppleLoading(true);
-      await AuthService.signInWithApple();
-    } catch (e) {
-      setErrors({ general: "Apple sign-in failed. Please try again." });
-    } finally {
-      setAppleLoading(false);
-    }
-  }
+  const styles = StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: c.canvas,
+    },
+    scroll: {
+      flexGrow: 1,
+      paddingHorizontal: sp.lg,
+      paddingBottom: sp.xxl,
+      ...(Platform.OS === "web"
+        ? { maxWidth: 480, width: "100%", alignSelf: "center" as const }
+        : {}),
+    },
+    back: {
+      paddingTop: sp.md,
+      paddingBottom: sp.lg,
+      alignSelf: "flex-start",
+    },
+    header: {
+      marginBottom: sp.xl,
+    },
+    title: {
+      ...t.h1,
+      color: c.textPrimary,
+      letterSpacing: -0.5,
+      marginBottom: sp.xs,
+    },
+    subtitle: {
+      ...t.body,
+      color: c.textSecondary,
+    },
+    socialRow: {
+      flexDirection: "row",
+      marginBottom: sp.xs,
+    },
+    form: {
+      gap: sp.xs,
+    },
+    errorBanner: {
+      backgroundColor: c.negativeSoft,
+      borderRadius: r.sm,
+      borderWidth: 1,
+      borderColor: c.negative,
+      padding: sp.md,
+      marginBottom: sp.sm,
+    },
+    errorBannerText: {
+      ...t.bodySm,
+      color: c.negative,
+    },
+    forgotRow: {
+      alignSelf: "flex-end",
+      marginTop: -sp.xs,
+      marginBottom: sp.sm,
+    },
+    forgotText: {
+      ...t.bodySm,
+      color: c.brandInteractive,
+    },
+    submitButton: {
+      marginTop: sp.sm,
+    },
+    footerRow: {
+      flexDirection: "row",
+      justifyContent: "center",
+      marginTop: sp.xl,
+    },
+    footerText: {
+      ...t.bodySm,
+      color: c.textMuted,
+    },
+    footerLink: {
+      ...t.bodySm,
+      color: c.signal,
+      fontFamily: t.bodyMed.fontFamily,
+    },
+  });
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.foundation} />
+      <StatusBar
+        barStyle={theme.isDark ? "light-content" : "dark-content"}
+        backgroundColor={c.canvas}
+      />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -102,7 +176,7 @@ export default function LoginScreen() {
         >
           {/* Back */}
           <TouchableOpacity style={styles.back} onPress={() => router.back()}>
-            <Text style={styles.backText}>← Back</Text>
+            <Feather name="arrow-left" size={20} color={c.textSecondary} />
           </TouchableOpacity>
 
           {/* Header */}
@@ -119,14 +193,6 @@ export default function LoginScreen() {
               onPress={handleGoogle}
               loading={googleLoading}
             />
-            {/*
-            <View style={{ width: Spacing.sm }} />
-            <SocialButton
-              label="Apple"
-              icon=""
-              onPress={handleApple}
-              loading={appleLoading}
-            />*/}
           </View>
 
           <Divider label="or sign in with email" />
@@ -189,83 +255,3 @@ export default function LoginScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.foundation,
-  },
-  scroll: {
-    flexGrow: 1,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xxxl,
-  },
-  back: {
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.lg,
-    alignSelf: "flex-start",
-  },
-  backText: {
-    fontSize: Typography.sm,
-    color: Colors.muted,
-  },
-  header: {
-    marginBottom: Spacing.xl,
-  },
-  title: {
-    fontSize: Typography.xxl,
-    fontWeight: Typography.extrabold,
-    color: Colors.air,
-    letterSpacing: -0.5,
-    marginBottom: Spacing.xs,
-  },
-  subtitle: {
-    fontSize: Typography.base,
-    color: Colors.muted,
-  },
-  socialRow: {
-    flexDirection: "row",
-    marginBottom: Spacing.xs,
-  },
-  form: {
-    gap: Spacing.xs,
-  },
-  errorBanner: {
-    backgroundColor: "rgba(224, 92, 92, 0.12)",
-    borderRadius: Radius.sm,
-    borderWidth: 1,
-    borderColor: Colors.error,
-    padding: Spacing.md,
-    marginBottom: Spacing.sm,
-  },
-  errorBannerText: {
-    color: Colors.error,
-    fontSize: Typography.sm,
-  },
-  forgotRow: {
-    alignSelf: "flex-end",
-    marginTop: -Spacing.xs,
-    marginBottom: Spacing.sm,
-  },
-  forgotText: {
-    fontSize: Typography.sm,
-    color: Colors.teal,
-  },
-  submitButton: {
-    marginTop: Spacing.sm,
-  },
-  footerRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: Spacing.xl,
-  },
-  footerText: {
-    fontSize: Typography.sm,
-    color: Colors.muted,
-  },
-  footerLink: {
-    fontSize: Typography.sm,
-    color: Colors.signal,
-    fontWeight: Typography.semibold,
-  },
-});
