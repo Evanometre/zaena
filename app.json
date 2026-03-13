@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "nova-pos",
+    "name": "ZAENA",
     "slug": "nova-pos",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,13 +13,14 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0E2931",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.throne_nova.novapos"
     },
     "web": {
       "output": "static",
@@ -33,16 +34,31 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#E2E2E0",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": " #0E2931"
           }
         }
-      ]
+      ],
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.YOUR_IOS_CLIENT_ID"
+        }
+      ],
+
+      "expo-mail-composer",
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "0d9b2361-5624-4b58-84c4-b9f30856afe9"
+      }
     }
   }
 }

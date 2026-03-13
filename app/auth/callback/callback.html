@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ZAENA - Email Verified</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: linear-gradient(
+          135deg,
+          #1a0a00 0%,
+          #3d1200 50%,
+          #1a0a00 100%
+        );
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: rgba(255, 255, 255, 0.97);
+        border-radius: 20px;
+        padding: 52px 36px;
+        max-width: 460px;
+        width: 100%;
+        text-align: center;
+        box-shadow:
+          0 32px 80px rgba(0, 0, 0, 0.5),
+          0 0 0 1px rgba(232, 90, 42, 0.1);
+      }
+
+      .logo {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.25em;
+        color: #e85a2a;
+        text-transform: uppercase;
+        margin-bottom: 32px;
+        opacity: 0.8;
+      }
+
+      .checkmark {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #e85a2a, #ff7a4a);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+        animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 0 8px 24px rgba(232, 90, 42, 0.35);
+      }
+
+      .checkmark svg {
+        width: 36px;
+        height: 36px;
+        stroke: white;
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+        animation: drawCheck 0.4s ease-out 0.3s forwards;
+        stroke-dasharray: 100;
+        stroke-dashoffset: 100;
+      }
+
+      @keyframes scaleIn {
+        from {
+          transform: scale(0);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      @keyframes drawCheck {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+
+      h1 {
+        font-size: 26px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 10px;
+        letter-spacing: -0.02em;
+      }
+
+      p {
+        font-size: 15px;
+        color: #6b7280;
+        margin-bottom: 36px;
+        line-height: 1.65;
+      }
+
+      .spinner-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+
+      .spinner {
+        width: 28px;
+        height: 28px;
+        border: 3px solid #f3f4f6;
+        border-top-color: #e85a2a;
+        border-radius: 50%;
+        animation: spin 0.75s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .loading-text {
+        font-size: 14px;
+        color: #9ca3af;
+      }
+
+      .app-button {
+        background: #e85a2a;
+        color: white;
+        border: none;
+        padding: 15px 36px;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: none;
+        letter-spacing: 0.01em;
+        box-shadow: 0 4px 16px rgba(232, 90, 42, 0.3);
+      }
+
+      .app-button:hover {
+        background: #d14a1a;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(232, 90, 42, 0.4);
+      }
+
+      .hint {
+        font-size: 13px;
+        color: #d1d5db;
+        margin-top: 20px;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo">ZAENA</div>
+
+      <div class="checkmark">
+        <svg viewBox="0 0 52 52">
+          <polyline points="14,27 22,35 38,19" />
+        </svg>
+      </div>
+
+      <h1>Email Confirmed</h1>
+      <p id="message">Your account is verified. Opening ZAENA now...</p>
+
+      <div class="spinner-wrap" id="spinnerWrap">
+        <div class="spinner"></div>
+        <span class="loading-text" id="loadingText">Redirecting to app...</span>
+      </div>
+
+      <button class="app-button" id="openAppBtn">Open ZAENA App</button>
+      <p class="hint" id="hint">
+        Didn't open automatically? Tap the button above.
+      </p>
+    </div>
+
+    <script>
+      // This is auth/callback/callback.html.
+      // ─────────────────────────────────────────────────────
+      // Token extraction
+      //
+      // With PKCE flow (flowType: "pkce" in the Supabase client),
+      // Supabase delivers a one-time ?code= query param.
+      //
+      // With implicit flow (legacy), tokens arrive in the hash:
+      //   #access_token=...&refresh_token=...
+      //
+      // We handle both so any confirmation emails sent before
+      // the PKCE migration still work.
+      // ─────────────────────────────────────────────────────
+      const hash = new URLSearchParams(window.location.hash.substring(1));
+      const query = new URLSearchParams(window.location.search);
+
+      const code = query.get("code");
+      const accessToken = hash.get("access_token");
+      const refreshToken = hash.get("refresh_token");
+      const type = hash.get("type") || query.get("type");
+      const errorCode = query.get("error_code") || hash.get("error_code");
+      const errorDesc =
+        query.get("error_description") || hash.get("error_description");
+
+      // ── Handle Supabase error responses ─────────────────
+      if (errorCode) {
+        document.querySelector(".checkmark").style.background = "#ef4444";
+        document.querySelector("h1").textContent = "Verification Failed";
+        document.getElementById("message").textContent = decodeURIComponent(
+          (
+            errorDesc || "This link may have expired. Please sign up again."
+          ).replace(/\+/g, " "),
+        );
+        document.getElementById("spinnerWrap").style.display = "none";
+      } else {
+        // ── Build deep link ────────────────────────────────
+        // The app's Expo scheme. Must match your app.json:
+        //   "scheme": "novapos"
+        const APP_SCHEME = "novapos://";
+        let deepLink = APP_SCHEME + "auth/callback";
+
+        if (code) {
+          // PKCE — forward the code; Supabase client in app exchanges it
+          deepLink += `?code=${encodeURIComponent(code)}`;
+          if (type) deepLink += `&type=${encodeURIComponent(type)}`;
+        } else if (accessToken) {
+          // Implicit fallback — forward tokens directly
+          deepLink += `?access_token=${encodeURIComponent(accessToken)}`;
+          if (refreshToken)
+            deepLink += `&refresh_token=${encodeURIComponent(refreshToken)}`;
+          if (type) deepLink += `&type=${encodeURIComponent(type)}`;
+        }
+        // If neither, open the app anyway — it will check session state
+
+        function openApp() {
+          window.location.href = deepLink;
+        }
+
+        // Attempt auto-redirect after a short delay (gives the
+        // page time to render the success state first)
+        setTimeout(() => {
+          openApp();
+
+          // Show manual button after 3s in case the OS didn't open the app
+          // (e.g. app not installed, or browser blocked the redirect)
+          setTimeout(() => {
+            document.getElementById("spinnerWrap").style.display = "none";
+            document.getElementById("openAppBtn").style.display =
+              "inline-block";
+            document.getElementById("hint").style.display = "block";
+            document.getElementById("message").textContent =
+              "Your email has been verified successfully.";
+          }, 3000);
+        }, 1200);
+
+        document
+          .getElementById("openAppBtn")
+          .addEventListener("click", openApp);
+      }
+    </script>
+  </body>
+</html>
