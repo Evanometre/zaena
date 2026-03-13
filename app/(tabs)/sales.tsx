@@ -1,6 +1,7 @@
 // FILE: app/(tabs)/sales.tsx
 
 import { PermissionButton } from "@/context/PermisionButton";
+import { useOnAppForeground } from "@/lib/hooks/useOnAppForeground";
 import { getOrganization } from "@/onboarding/services/organizationService";
 import {
   ALL_CURRENCIES,
@@ -413,7 +414,7 @@ export default function SalesScreen() {
   const [hasMore, setHasMore] = useState(true);
 
   const [currency, setCurrency] = useState({
-    symbol: "₦",
+    symbol: " ",
     code: "NGN",
     name: "Nigerian Naira",
   });
@@ -463,6 +464,14 @@ export default function SalesScreen() {
       fetchReviewSales();
     }, [filterStatus, filterPeriod]),
   );
+
+  useOnAppForeground(() => {
+    setPage(1);
+    fetchSales(1, true);
+    fetchTodayRevenue();
+    fetchUnpaidStats();
+    fetchReviewSales();
+  });
 
   // ── Data fetching ──────────────────────────────────────────────────────────
 

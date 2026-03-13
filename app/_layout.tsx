@@ -41,7 +41,6 @@ import {
 import Toast from "react-native-toast-message";
 import { PermissionsProvider } from "../context/PermissionsContext";
 import { initLocalDb } from "../lib/localDb";
-import supabase from "../lib/supabase";
 import { syncOutbox } from "../lib/syncEngine";
 import { useAuthStore } from "../stores/authStore";
 
@@ -59,32 +58,16 @@ export default function RootLayout() {
   // kicks the client back into a working state before any screen queries.
   const appState = useRef<AppStateStatus>(AppState.currentState);
 
+  // _layout.tsx — replace the entire AppState useEffect with this
   useEffect(() => {
     const subscription = AppState.addEventListener(
       "change",
-      async (nextState: AppStateStatus) => {
-        if (
-          appState.current.match(/inactive|background/) &&
-          nextState === "active"
-        ) {
-          // App came to foreground — refresh session so Supabase client
-          // re-establishes its connection before any screen tries to query
-          try {
-            const { error } = await supabase.auth.refreshSession();
-            if (error) {
-              // Session expired entirely — let authStore handle redirect
-              console.warn("[AppState] session refresh failed:", error.message);
-            } else {
-              console.log("[AppState] session refreshed on foreground");
-            }
-          } catch (err) {
-            console.warn("[AppState] session refresh threw:", err);
-          }
-        }
+      (nextState: AppStateStatus) => {
         appState.current = nextState;
+        // startAutoRefresh/stopAutoRefresh is handled in supabase.ts
+        // Nothing else needed here
       },
     );
-
     return () => subscription.remove();
   }, []);
 

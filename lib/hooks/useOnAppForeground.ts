@@ -10,7 +10,6 @@ export function useOnAppForeground(callback: () => void) {
   const appState = useRef<AppStateStatus>(AppState.currentState);
   const callbackRef = useRef(callback);
 
-  // Keep the ref current so we don't need callback in the dep array
   useEffect(() => {
     callbackRef.current = callback;
   });
@@ -21,7 +20,9 @@ export function useOnAppForeground(callback: () => void) {
         appState.current.match(/inactive|background/) &&
         nextState === "active"
       ) {
-        callbackRef.current();
+        // Small delay to let startAutoRefresh() complete the token
+        // refresh before we fire any queries
+        setTimeout(() => callbackRef.current(), 500);
       }
       appState.current = nextState;
     });

@@ -24,7 +24,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     detectSessionInUrl: false,
     flowType: "pkce",
-   
   },
   global: {
     fetch: fetchWithTimeout, // ← this is the critical addition

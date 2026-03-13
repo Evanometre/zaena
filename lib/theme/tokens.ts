@@ -68,12 +68,12 @@ export const LIGHT_SURFACES = {
 // ─── TEXT ──────────────────────────────────────────────────────────────────────
 
 export const DARK_TEXT = {
-  textPrimary: PALETTE.air,                        // #E2E2E0
-  textSecondary: "rgba(226,226,224,0.55)",
-  textMuted: "rgba(226,226,224,0.30)",
-  textDisabled: "rgba(226,226,224,0.18)",
-  textInverse: PALETTE.brandDeep,
-  textSignal: PALETTE.signal,
+  textPrimary:   PALETTE.air,                    // #E2E2E0 — unchanged
+  textSecondary: "rgba(226,226,224,0.80)",        // was 0.55
+  textMuted:     "rgba(226,226,224,0.55)",        // was 0.30
+  textDisabled:  "rgba(226,226,224,0.35)",        // was 0.18
+  textInverse:   PALETTE.brandDeep,
+  textSignal:    PALETTE.signal,
 } as const;
 
 export const LIGHT_TEXT = {

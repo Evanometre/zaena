@@ -1,5 +1,5 @@
 // hooks/useNotifications.ts
-import { adapter } from "@/lib/db/adapter.native";
+import { adapter } from "@/lib/db/adapter";
 import supabase from "@/lib/supabase";
 import { useAuthStore } from "@/stores/authStore";
 import { useCallback, useEffect, useState } from "react";

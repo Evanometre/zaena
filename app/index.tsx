@@ -2,18 +2,27 @@
 // app/index.tsx — Entry point routing
 // ============================================================
 
-import { Colors } from "@/lib/theme";
+import { useTheme } from "@/lib/theme/ThemeProvider";
 import { useAuthStore } from "@/stores/authStore";
 import { router } from "expo-router";
 import { useEffect } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, Platform, View } from "react-native";
 
 export default function IndexScreen() {
   const { ready, session, onboardingStep } = useAuthStore();
+  const { theme } = useTheme();
+  const c = theme.colors;
+
+  // Set browser tab title on web while routing
+  useEffect(() => {
+    if (Platform.OS === "web") {
+      document.title = "Zaena";
+    }
+  }, []);
 
   // Safety timeout — if hydration stalls, force proceed after 3s
   useEffect(() => {
-    if (!ready) return; // ← one flag, no race
+    if (!ready) return;
 
     if (!session) {
       router.replace("/(auth)" as any);
@@ -51,12 +60,12 @@ export default function IndexScreen() {
     <View
       style={{
         flex: 1,
-        backgroundColor: Colors.foundation,
+        backgroundColor: c.canvas,
         alignItems: "center",
         justifyContent: "center",
       }}
     >
-      <ActivityIndicator color={Colors.teal} size="large" />
+      <ActivityIndicator color={c.brandInteractive} size="large" />
     </View>
   );
 }
